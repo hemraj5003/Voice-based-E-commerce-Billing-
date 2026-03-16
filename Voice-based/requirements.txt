@@ -1,0 +1,10 @@
+flask
+openai-whisper
+torch
+sounddevice
+numpy
+scipy
+requests
+pymongo
+reportlab
+werkzeug
