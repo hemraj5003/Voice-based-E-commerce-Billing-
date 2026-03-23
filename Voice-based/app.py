@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from recorder.recorder import record
 from stt.whisper import WhisperSTT
 from nlp.ollama_nlp import extract_entities
-from billing.cart import Cart
+from billing.cart import Cart 
 from billing.receipt import build_receipt_text, generate_pdf
 from billing.shop import get_shop, save_shop
 from database.mongo import seed_products, seed_shop, list_products
