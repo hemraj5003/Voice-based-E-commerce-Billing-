@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoiceCart - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a28;
+    --border: #2a2a3f;
+    --accent: #ff6b35;
+    --blue: #4fc3f7;
+    --green: #69f0ae;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 40px; }
+  .logo { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+  .logout { color: var(--muted); text-decoration: none; font-weight: 700; transition: color 0.2s; }
+  .logout:hover { color: var(--accent); }
+  
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 30px; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 16px; transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer; }
+  .card:hover { border-color: var(--accent); transform: translateY(-4px); }
+  .card h3 { font-size: 20px; font-weight: 800; }
+  .card p { color: var(--muted); font-size: 14px; line-height: 1.5; font-family: 'JetBrains Mono', monospace; }
+  .card.disabled { opacity: 0.5; pointer-events: none; }
+  
+  /* Shop Setup Modal */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal.active { display: flex; }
+  .modal-content { background: var(--surface); padding: 32px; border-radius: 24px; border: 1px solid var(--border); width: 100%; max-width: 480px; }
+  .modal h2 { margin-bottom: 20px; font-weight: 800; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted); font-size: 14px; }
+  .input-group input { width: 100%; padding: 12px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Syne', sans-serif; outline: none; }
+  .input-group input:focus { border-color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+  .btn { flex: 1; padding: 14px; border-radius: 12px; font-family: 'Syne', sans-serif; font-weight: 800; cursor: pointer; border: none; transition: opacity 0.2s; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--text); }
+  
+  /* Voice Add Modal */
+  .mic-button { width: 80px; height: 80px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--border); font-size: 32px; display: flex; align-items: center; justify-content: center; margin: 30px auto; cursor: pointer; transition: all 0.3s; color: white; }
+  .mic-button.recording { background: var(--accent); border-color: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  #voice-transcript { text-align: center; min-height: 24px; margin-bottom: 20px; color: var(--blue); font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">🛒 VoiceCart Hub</div>
+    <a href="/logout" class="logout">Logout</a>
+  </header>
+  
+  <h1 style="font-weight: 800; font-size: 32px; margin-bottom: 8px;">Welcome back</h1>
+  <p style="color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 40px;">What would you like to do?</p>
+  
+  <div class="card-grid">
+    <div class="card" onclick="openShopModal()">
+      <h3>🏪 1. Setup Shop</h3>
+      <p>Configure your shop name, phone, and address to get started.</p>
+    </div>
+    
+    <div class="card {% if not shop_exists %}disabled{% endif %}" onclick="openVoiceModal()">
+      <h3>🎙️ 2. Add Products</h3>
+      <p>Use voice to quickly add main products. Say: "Add product banana price 60 per dozen"</p>
+    </div>
+    
+    <a href="/billing" class="card {% if not shop_exists %}disabled{% endif %}">
+      <h3>🧾 3. Start Billing</h3>
+      <p>Open the POS terminal to start taking voice orders from customers.</p>
+    </a>
+  </div>
+</div>
+
+<!-- Shop Modal -->
+<div class="modal" id="shop-modal">
+  <div class="modal-content">
+    <h2>Shop Details</h2>
+    <div class="input-group">
+      <label>Shop Name</label>
+      <input type="text" id="shop-name">
+    </div>
+    <div class="input-group">
+      <label>Phone Number</label>
+      <input type="text" id="shop-phone">
+    </div>
+    <div class="input-group">
+      <label>Location / Address</label>
+      <input type="text" id="shop-address">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShop()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voice Add Modal -->
+<div class="modal" id="voice-modal">
+  <div class="modal-content" style="text-align: center;">
+    <h2>Voice Setup</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; font-size: 14px;">Say: "Add product [name] price [price] per [unit]"</p>
+    
+    <button class="mic-button" id="mic-btn" onclick="toggleRecording()">🎤</button>
+    
+    <div id="voice-transcript">Tap mic to speak...</div>
+    
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModals()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openShopModal() {
+    fetch('/shop').then(r => r.json()).then(data => {
+      document.getElementById('shop-name').value = data.shop_name || '';
+      document.getElementById('shop-phone').value = data.phone || '';
+      document.getElementById('shop-address').value = data.address || '';
+      document.getElementById('shop-modal').classList.add('active');
+    });
+  }
+  
+  function openVoiceModal() {
+    document.getElementById('voice-modal').classList.add('active');
+  }
+  
+  function closeModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    if(recognition && isRecording) { recognition.stop(); }
+  }
+  
+  function saveShop() {
+    const payload = {
+      name: document.getElementById('shop-name').value,
+      phone: document.getElementById('shop-phone').value,
+      address: document.getElementById('shop-address').value
+    };
+    fetch('/shop', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    }).then(() => window.location.reload());
+  }
+
+  let recognition = null;
+  let isRecording = false;
+
+  function toggleRecording() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert("Speech API not supported"); return; }
+    
+    if (isRecording) {
+      if(recognition) recognition.stop();
+      return;
+    }
+    
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = true;
+    
+    const btn = document.getElementById('mic-btn');
+    const txt = document.getElementById('voice-transcript');
+    
+    btn.classList.add('recording');
+    isRecording = true;
+    txt.textContent = "Listening...";
+    
+    recognition.onresult = (e) => {
+      let final = '';
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      txt.textContent = final + interim;
+    };
+    
+    recognition.onend = () => {
+      btn.classList.remove('recording');
+      isRecording = false;
+      const text = txt.textContent;
+      if(text && text !== "Listening..." && text !== "Tap mic to speak...") {
+        txt.textContent = "Processing...";
+        fetch('/products/add/voice', {
+            method: 'POST',
+            body: JSON.stringify({speech: text})
+        }).then(r => r.json()).then(data => {
+            if(data.error) txt.textContent = "Error: " + data.error;
+            else txt.textContent = `Added ${data.product.name} at ₹${data.product.price}/${data.product.unit}`;
+        }).catch(() => { txt.textContent = "Failed to add product"; });
+      } else {
+        txt.textContent = "Tap mic to speak...";
+      }
+    };
+    
+    recognition.start();
+  }
+</script>
+</body>
+</html>

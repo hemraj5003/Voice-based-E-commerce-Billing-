@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoiceCart - Signup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a28;
+    --border: #2a2a3f;
+    --accent: #ff6b35;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .auth-box { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center; }
+  h1 { margin-bottom: 24px; font-weight: 800; font-size: 28px; }
+  .input-group { margin-bottom: 16px; text-align: left; }
+  label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; color: var(--muted); }
+  input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); outline: none; font-size: 16px; transition: border-color 0.2s; }
+  input:focus { border-color: var(--accent); }
+  button { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent); color: white; border: none; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 10px; transition: opacity 0.2s; }
+  button:hover { opacity: 0.9; }
+  .error { color: #ff5252; margin-bottom: 16px; font-size: 14px; font-weight: 700; }
+  p { margin-top: 20px; font-size: 14px; color: var(--muted); }
+  a { color: var(--accent); text-decoration: none; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="auth-box">
+    <h1>Create Account</h1>
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="/signup">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="/login">Log in</a></p>
+  </div>
+</body>
+</html>
